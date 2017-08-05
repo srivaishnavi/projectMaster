@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+   
+    <title>Project Master</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../dist/css/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="../dist/css/style.css">
+
+    <script src="../dist/js/jquery-3.2.1.min.js" ></script>
+    <script src="../dist/js/jquery-ui.js"></script>
+
+
+    <script src="../dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../js/projectMaster.js"></script>
+    <script type="text/javascript" src="../js/validations.js"></script>
+
+    <script>
+      
+      $(document).ready(function () {
+        initialize();
+
+          $(".cancelsubmit").on("click", function(){
+              var x = document.getElementsByTagName("input");
+              for(i = 0; i <= x.length-1; i++){
+                  if(x.item(i).type!="submit" ){ x.item(i).value = ""; }
+              }
+              $(".add-form").hide();
+              $(".add-btn").show();
+              $(".error-message").html("");
+
+          }); 
+
+              $(".addsubmit").click(function() {
+                   $(".error-message").html("");
+                  var maindivisionid = $(".division-name").val();
+                  var mainprojectid = $(".project-name").val();
+
+                  var projectname = $(".add-projectname").val();
+                  var projectshortname = $(".add-projectshortname").val();
+                  var ocv = $(".add-ocv").val();
+                  var startdate = $(".add-startdate").val();
+                  var enddate = $(".add-enddate").val();
+                  var rcv = $(".add-rcv").val();
+                  var r_enddate = $(".add-renddate").val();
+                  var issubproject = 0;
+                  var parent_project_id = 0;
+                  var projectid = $(".add-projectid").val();
+                  var companyID = $(".company-name").val();
+
+                
+                  if(rcv == '') {
+                      rcv = null;
+                  }
+                  if(r_enddate == '') {
+                      r_enddate = null;
+                  }
+
+
+                  if(companyID == ""){
+                      $(".error-message").html("select a company");
+                       return false;
+                  }
+
+                  if(maindivisionid == ""){
+                    $(".error-message").html("select a Division");
+                    return false;
+                  }
+
+
+               if(mainprojectid != ''){
+                  //Project Name and Short Name
+                  if($(".add-projectname")) {
+                      if(checkEmpty(projectname, "Project Name" ) == false)
+                          return false;
+                  }
+                   
+                  if( $(".add-projectshortname") ){
+                      if(checkEmpty( projectshortname,"Project Short Name") == false)
+                        return false;
+                  }
+
+
+                  if($(".add-ocv")){
+                    if(checkEmpty( ocv ,"Original Contract  value") == false)
+                      return false;
+                    if(isNumber(ocv , "Original Contract Value") == false)
+                      return false;
+                  }
+
+                  if($(".add-startdate")) {
+                     if(checkEmpty(startdate, "Start Date") == false)
+                      return false;
+                  }
+
+                  if($(".add-enddate")) {
+                      if(checkEmpty(enddate, "End date") == false)
+                          return false;
+                  }
+                }
+                    if(mainprojectid != ''){
+                        issubproject = 1;
+                        parent_project_id = parseInt(mainprojectid);
+                      }
+
+                 // alert(mainprojectid);
+
+                if($('.updatestatus').val() == '' && mainprojectid == '' && projectid == ''){ //Add project
+                      console.log("saveproject");
+                      saveProject(parseInt(companyID), parseInt(maindivisionid), projectname, projectshortname, ocv,
+                          startdate, enddate, rcv, r_enddate, issubproject, parent_project_id);
+                  }
+
+                if($('.updatestatus').val() != '' && mainprojectid == '' && projectid != ''){ //update project
+                    console.log("updateproject");
+                    parent_project_id = parseInt($(".add-parent-project-id").val());
+                    updateProject(parseInt(companyID), parseInt(maindivisionid), parseInt(projectid), projectname, projectshortname, ocv,
+                            startdate, enddate, rcv, r_enddate, issubproject, parent_project_id);
+                }
+              
+                if($('.updatestatus').val() == '' && mainprojectid != '' && projectid == ''){ //Add project
+                      console.log("saveproject");
+                      console.log("issubproject-> "+ issubproject);
+                      saveProject(parseInt(companyID), parseInt(maindivisionid), projectname, projectshortname, ocv,
+                          startdate, enddate, rcv, r_enddate, issubproject, parent_project_id);
+                  }
+
+              //initialize();
+
+          });
+
+
+      });
+    </script>
+    <style type="text/css">
+      
+      .starter-template {
+          padding: 4rem 1.5rem;
+          text-align: center;
+        }
+    </style>
+
+    </head>
+
+
+  
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+     <!--  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button> -->
+      <a class="navbar-brand" href="#">Project Master</a>
+
+      
+    </nav>
+
+    <div class="container starter-template">
+          <div class="row">
+              <div class="col-md-4 remove-left-padding">
+                <div class="form-group">
+                  <label>Company Name</label>
+                  <select class="form-control company-name" onchange="loadDivisionlist(this.value)" tabindex="1">
+                    <option value="">Select</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4 remove-left-padding">
+                <div class="form-group">
+                  <label>Division Name</label>
+                  <select class="form-control division-name" onchange="loadProjectMasterDetails(this.value)" tabindex="2">
+                    <option value="">Select</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4 remove-left-padding">
+                <div class="form-group">
+                  <label>Project Name</label>
+                  <select class="form-control project-name" onchange="loadSubprojectMasterDetails(this.value)" tabindex="3">
+                     <option value="">select</option>
+                  </select>
+                </div>
+              </div>
+          </div>
+          <div class="col-md-12">
+            <div class="table-responsive">
+              <table class="table table-striped info-head table-hover" style="">
+                <thead class="table-head">
+                  <tr>
+                    <th width="3%">S.No</th>
+                    <th width="16%">Subproject Name*</th>
+                    <th width="10%">Short Name*</th>
+                    <th width="12%">Original Contract Value*</th>
+                    <th width="10%">Start Date*</th>
+                    <th width="10%">End Date*</th>
+                    <th width="12%">Revised Contract Value</th>
+                    <th width="12%">Revised End Date</th>
+                    <th width="3%" class="text-center edit-row">Edit</th>
+                    <th width="5%" class="text-center delete-row">Delete</th>
+                    <th width="5%" class="text-center status-row">Status</th>
+                  </tr>
+                  <tr class="filter-tr" style="display: none;">
+                    <td>&nbsp;</td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter Subproject Name" class="form-control js-filter" tabindex="4">
+                        <span id="basic-addon2" class="input-group-addon"> <span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter Subproject Short Name" class="form-control js-filter" tabindex="5"> 
+                        <span id="basic-addon2" class="input-group-addon"><span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter Original Contract Value in Rs" class="form-control js-filter" tabindex="6">
+                        <span id="basic-addon2" class="input-group-addon"><span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter Start Date" class="form-control js-filter" tabindex="7">
+                        <span id="basic-addon2" class="input-group-addon"><span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter End Date" class="form-control js-filter" tabindex="8">
+                        <span id="basic-addon2" class="input-group-addon"><span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter Revised Contract Value in Rs" class="form-control js-filter" tabindex="9">
+                        <span id="basic-addon2" class="input-group-addon"><span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td><div class="input-group col-md-12">
+                        <input type="text" aria-describedby="basic-addon2" placeholder="Enter Revised End Date" class="form-control js-filter" tabindex="10">
+                        <span id="basic-addon2" class="input-group-addon"><span aria-hidden="true" class="glyphicon glyphicon-search"></span> </span> </div></td>
+                    <td class="edit-row">&nbsp;</td>
+                    <td class="delete-row">&nbsp;</td>
+                    <td class="status-row">&nbsp;</td>
+                  </tr>         
+               </thead>
+                <tbody class="tbody-project-master-list">
+                  <tr><td colspan="100%"><center><b>Record Not Found!</b></center></td></tr></tbody>
+                <tbody class="tbody-sum-project-master-list">
+                </tbody>
+                <tfoot>
+                  <tr class="add-form hiderow" style="display: none;">
+                    <td></td>
+                    <td>                    
+                    <input type="hidden" class="add-projectid" value="">
+                    <input placeholder="Enter Subproject Name" class="form-control add-projectname" value=""></td>
+                    <td><input placeholder="Enter Subproject Short Name" class="form-control add-projectshortname" value=""></td>
+                    <td><input placeholder="Enter Original Contract Value in Rs" class="form-control  add-ocv" value="" maxlength="11"></td>
+                    <td><input placeholder="Enter Start Date" class="form-control add-startdate" readonly="readonly" value=""></td>
+                    <td><input placeholder="Enter End Date" class="form-control add-enddate" readonly="readonly" value=""></td>
+                    <td><input placeholder="Enter Revised Contract Value in Rs " class="form-control add-rcv" value="" maxlength="11"></td>
+                    <td><input placeholder="Enter Revised End Date " class="form-control add-renddate" readonly="readonly" value=""></td>
+
+                    <input type="hidden" class="add-parent-project-id" value="">
+                    
+                    <td class="text-center" colspan="3">
+
+                        <button class="btn btn-default btn-primary addsubmit" type="submit">Submit</button>&nbsp;
+
+                        <button class="btn btn-default btn-primary cancelsubmit" type="submit">Cancel</button></td>
+                  </tr>
+                </tfoot>
+              </table>
+              <input type="hidden" class="updatestatus" value="">
+                  
+              <button class="btn btn-default btn-primary add-btn" onclick="addnewprojectview()" > Add</button>
+
+              
+              <span class="error-message" style="display: inline;color: #F00"></span>
+            </div>
+          </div>
+
+  
+<div id="templates">
+<table class="table-project-master-list">
+    <tr class="table-row-list">
+        <td class="sno"></td>
+        <td class="subprojectname"></td>
+        <td class="subprojectshortname"></td>
+        <td class="ocv"></td>
+        <td class="startdate"></td>
+        <td class="enddate"></td>
+        <td class="rcv"></td>
+        <td class="r_enddate"></td>
+        <td class="text-center edit edit-row"><a title="Edit Project"><span aria-hidden="true" class="glyphicon glyphicon-pencil gi-2x"></span></a></td>
+        <td class="text-center delete delete-row"><a title="Delete Project"><span aria-hidden="true" class="glyphicon glyphicon-trash gi-2x"></span></a></td>
+        <td class="text-center is-active status-row"></td>
+    </tr>
+
+    <tr class="sumation-total">
+        <td></td>
+        <td></td>
+        <td></td>    
+        <td><strong class="st-ocv-sum"></strong></td>
+        <td></td>
+        <td></td>
+        <td><strong class="st-rcv-sum"></strong></td>
+        <td></td>
+        <td class="edit-row"></td>
+        <td class="delete-row"></td>
+        <td class="status-row"></td>
+    </tr>        
+    <tr class="project-sumation-total">
+        <td></td>
+        <td class="pst-projectname"></td>
+        <td class="pst-projectshortname"></td>                  
+        <td><strong class="pst-ocv-total"></strong></td>
+        <td></td>
+        <td></td>
+        <td><strong class="pst-rcv-total"></strong></td>
+        <td></td>
+        <td class="edit-row"></td>
+        <td class="delete-row"></td>
+        <td class="status-row"></td>
+    </tr>
+
+</table>
+</div>
+
+
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    
+    
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
